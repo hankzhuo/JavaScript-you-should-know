@@ -1,0 +1,199 @@
+/**
+ * @description 创建对象
+ * 1. 对象直接量
+ * 2. new 创建对象
+ * 3. Object.create()
+ */
+// 对象直接量
+var obj1 = {}   // obj1 继承了 Object.prototype 属性和方法
+
+// new 创建对象
+var obj2 = new Object() // 实例 obj2 继承了 Object.prototype 属性和方法
+var arr = new Array()  // 实例 arr 继承 Array.prototype 属性和方法，Array.prototype 继承 Object.prototype 属性和方法
+
+// Object.create()
+var o1 = Object.create({ x: 1, y: 2 })  // o1 继承了对象 {x: 1, y:2}，该对象继承了 Object.prototype 属性和方法
+var o2 = Object.create(null) // 不继承任何属性和方法
+var o3 = Object.create(Object.prototype)  // 和上面 obj1、obj2 创建空对象一样
+
+
+
+/**
+ * @description 属性的查询
+ * 假设要查询对象 o 的属性 x，如果 o 中不存在 x，那么将会继续在 o 的原型对象中查询属性 x，如果对象原型中也没有属性 x，但这个原型对象也有原型
+ * 那么继续在这个原型对象的原型上查询，直到找到 x 或者没找到。
+ */
+var book = {}
+var author = book.author // 点运算符
+var title = book['main title'] // [字符串]
+
+// 字符串写法，好处是动态的，可以在运行时更改，而不是标识符，标识符是是静态的，是写死的
+function addProperty(obj, property1, value) {
+  obj[property1] = value  // property1 是变量
+}
+
+// 属性赋值操作首先检查原型链，以此判断是否允许赋值操作。如果 o 继承自一个只读属性 x，那么赋值操作是不允许的。
+// 如果允许赋值操作，也总是在原始对象上创建属性或对已有属性赋值，而不会去修改原型链。
+// 在 JavaScript 中，只有在查询属性时才会体会到继承的存在，而设置属性则和继承无关。
+var obj2 = { r: 1 };
+var c = Object.create(obj2);
+c.x = 1; c.y = 1;
+c.r = 2;
+obj2.r; // 1  原型对象没有被修改，继承的对象不能修改，只能通过 obj2 自己修改
+
+// 属性访问错误
+var lenn = book.subtitle.length  // 不能保证 book、book.subtitle 一定是对象，给 null 和 undefined 设置属性会报错
+var len = book && book.subtitle && book.subtitle.length
+
+
+
+/**
+ * @description 删除属性
+ * 1. 删除属性，只是断开属性和宿主对象的联系，而不会去操作属性中的属性
+ * 2. 只能删除自身属性，不能删除继承属性（继承属性必须是定义这个继承属性的对象删除）
+ */
+var a = { p: { x: 1 } }; b = a.p
+delete a.p
+a; // {}
+b; // {x: 1}
+
+//  delete 删除成功或者没有任何副作用时，返回 true
+var o = { x: 1 }
+delete o.x
+delete o.x
+delete o.toString;
+delete 1
+
+// 不能删除那些可配置属性为 false 的属性，返回 false。比如通过变量声明和函数声明的全局对象属性
+delete Object.prototype;
+var x = 1;
+delete this.x; // 不能删除这个属性
+function f() { }
+delete this.f
+
+
+
+/**
+ * @description 检测属性，判断某个属性是否存在于某个对象中，无论是自身属性还是继承属性
+ */
+// in 运算符
+var o = { x: 1 }
+'x' in o;  // true
+'y' in o;  // false
+'toString' in o; // true，继承属性
+
+// hasOwnproperty() 检查是否对象的自身属性
+o.hasOwnProperty('x'); // true
+o.hasOwnProperty('toString'); // false
+
+// propertyIsEnumerable() 判断属性是否是可枚举
+o.propertyIsEnumerable('x'); // true
+o.propertyIsEnumerable('toString'); // false
+
+
+
+/**
+ * @description 枚举属性
+ */
+// for/in 循环，遍历对象中所有可枚举的属性（包括自有属性和继承属性）
+var o = { x: 1, y: 2 }
+for (p in o) {
+  console.log(p)
+}
+
+// Object.keys() 返回一个数组，由对象的所有可枚举自有属性组成
+var keys = Object.keys(o); // ['x', 'y']
+
+// Object.getOwnPropertyNames() 返回对象所有自有属性
+Object.getOwnPropertyNames(o) // ['x', 'y'] 
+
+
+
+/**
+ * @description 属性的类型
+ * 1. *数据属性*的描述符有：值(value)、可写性(writeable)、可枚举性(enumerable)、可配置性(configurable)
+ * 2. *取存器属性*的描述符有：读取(get)、写入(set)、可枚举性(enumerable)、可配置性(configurable)
+ */
+var p = {
+  x: 1,
+  y: 2,
+  get z() { return this.x * this.y },
+  set z(newValue) {
+    this.x = newValue
+  },
+}
+
+// Object.getOwnPropertyDescriptor 获得某个对象特定自身属性的描述符
+var obj = { x: 1 }
+Object.getOwnPropertyDescriptor(obj, 'x') // {value: 1, writable: true, enumerable: true, configurable: true}
+// 对于不存在的属性和继承属性，返回 undefined
+Object.getOwnPropertyDescriptor(obj, 'toString') // undefined 继承属性
+
+// Object.defineProperty() 设置属性的描述符。只能修改已有属性或新建自有属性，并不能修改继承属性，默认值是 false 或 undefined
+var o = {}
+Object.defineProperty(o, 'x', {
+  value: 1,
+  writable: true,
+  enumerable: false,
+  configurable: true,
+})
+Object.keys(o) // [] ，因为属性 x 为不可遍历
+// 设置属性 x 只读
+Object.defineProperty(o, 'x', {
+  writable: false
+})
+o.x = 2
+o; // {x: 1}
+// 属性依然可以通过 Object.defineProperty() 配置
+Object.defineProperty(o, 'x', {
+  value: 3
+})
+// 把数据 x 属性转换为取存器属性
+Object.defineProperty(o, 'x', {
+  get: function () { return 0; }
+})
+
+// Object.defineProperties 同时修改或创建多个属性
+Object.defineProperties({}, {
+  x: { value: 1, writable: true, enumerable: true, configurable: true },
+  r: {
+    get: function () { return this.x + 1; },
+    enumerable: true,
+    configurable: true
+  }
+})
+
+
+
+/**
+ * @description 对象序列化
+ * 1. JSON 的语法是 JavaScript 的语法子集，它不能表示 JavaScript 里的所有值。支持对象、数组、字符串、无穷大数字、true、false、null。并且可以序列号和还原。
+ * 2. NaN、Infinity 和 -Infinity 序列化结果都是 null
+ * 3. Date 可以序列化，但是反序列化时是 str 格式，不是 Date 格式
+ * 4. 函数、symbol值、RegExp、Error 对象和 undefined 值会被忽略或者转化为 null
+ */
+// JSON.stringify()，将对象的状态转化为字符串
+var obj = { x: 1, y: { z: [false, null, ''] } }
+var str = JSON.stringify(obj)  // "{"x":1,"y":{"z":[false,null,""]}}"
+
+// JSON.parse()，将字符串还原为对象
+var p = JSON.parse(str) // {x: 1, y: {z: [false, null, '']}}
+obj === p; // false，也算是深拷贝的一种
+
+var obj = { x: 1, y: { z: [false, null, '', NaN, Infinity, new Date()] } }
+var str = JSON.stringify(obj) // "{"x":1,"y":{"z":[false,null,"",null,null,,"2019-06-11T14:05:15.250Z"]}}"
+var p = JSON.parse(str) // {x: 1, y: {z: [false, null, "", null, null, "2019-06-11T14:05:15.250Z"]}}
+
+var obj = { x: 1, y: [function () { }, new RegExp('x'), new Error('aaa'), undefined, RegExp, Error] }
+var str = JSON.stringify(obj) // "{"x":1,"y":[null,{},{},null,null,null]}"
+
+// 不可枚举的属性默认会被忽略：
+JSON.stringify(
+  Object.create(
+    null,
+    {
+      x: { value: 'x', enumerable: false },
+      y: { value: 'y', enumerable: true }
+    }
+  )
+);

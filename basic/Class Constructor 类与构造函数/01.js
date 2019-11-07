@@ -1,0 +1,66 @@
+/**
+ * @description ES6 类
+ * 1. 类声明是自定义类型声明（构造函数）的语法糖
+ * 2. 函数声明可以被提升，类声明不能提升，在真正执行语句之前，它们会一直存在零时死区中
+ * 3. 类声明中所有代码将自动运行严格模式下
+ * 4. 在自定义类型中，可以通过 Object.defineProperty() 方法手动指定某个方法是不可枚举；而在类中，所有方法都不可枚举
+ * 5. 每个类都有一个 [[Construct]] 的内部方法，通过关键字 new 调用，那些不含 [[Construct]] 的方法会导致程序出错
+ * 6. 类只是用关键字 new 调用，其他方式调用会报错
+ * 7. 在类中修改类名会报错
+*/
+class PersonClass {
+  // 等价于 PersonClass 构造函数
+  constructor(name) {
+    this.name = name;
+  }
+
+  // 等价于 PersonClass.prototype.sayName
+  sayName() {
+    console.log(this.name)
+  }
+}
+
+let person = new PersonClass('hank')
+person.sayName()
+
+console.log(person instanceof PersonClass) // true
+console.log(person instanceof Object) // true
+console.log(typeof PersonClass) // "function"
+console.log(typeof person.sayName) // "function"
+
+
+// 上面类等价于下面
+let PersonClass2 = (function() {
+  "use strict"
+
+  const PersonClass2 = function(name) {
+    if (typeof new.target === undefined) {
+      throw new Error('必须通过关键字 new 调用')
+    }
+    this.name = name
+  }
+
+  Object.defineProperty(PersonClass2.prototype, 'sayName', {
+    value: function() {
+      if (typeof new.target !== "undefined") {
+        throw new Error('不能用通过关键字 new 调用')
+      }
+      console.log(this.name)
+    },
+    enumerable: false,
+    writable: true,
+    configurable: true
+  })
+
+  return PersonClass2
+})
+
+
+// 不能再类中修改类名，因为是常量，用 const 定义
+class Foo {
+  constructor() {
+    Foo = 'bar' // 执行时候，报错
+  }
+}
+
+Foo = 'baz'

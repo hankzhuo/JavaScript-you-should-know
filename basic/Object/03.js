@@ -1,0 +1,200 @@
+/**
+* @method Object.keys(obj)
+* @param {obj} 可以是对象，数组，字符串
+* @returns 返回自身可枚举属性组成的数组
+*/
+var arr = ['a', 'b', 'c']  // 数组也是对象的一种
+Object.keys(arr)   //  ["0", "1", "2"]
+
+var obj = { a: 1, b: 2, c: 3 }
+Object.keys(obj)  // ['a', 'b', 'c']
+
+var myObj = Object.create({}, {
+  getFoo: {
+    value: function () { return this.foo; },
+    enumerable: true,
+  }
+});
+myObj.foo = 1
+Object.keys(myObj)  // ["getFoo", "foo"]
+Object.keys('foo') // ES5 以下会报错，ES6+ 返回 ['f', 'o', 'o']
+
+
+
+/**
+ * @method Object.create(obj, [propertiesObject])
+ * @param {obj}：新创建对象继承对象 obj
+ * @param {propertiesObject}：给新创建对象添加属性，根据 Object.defineProperties() 第二个参数一样
+ * @returns 返回的新对象
+ */
+var myObj = Object.create({ a: 1 }, {
+  getFoo: {
+    value: function () { return this.foo; },
+    enumerable: true,
+  },
+  foo: {
+    value: 2,
+    enumerable: false
+  }
+});
+myObj; // {getFoo: function () { return this.foo }, foo: 2 }  属性 foo 是不可遍历的
+
+
+
+/**
+ * @method object.valueOf() 
+ * @returns 如果对象有 [[PrimitiveValue]]，则返回这个，new Boolean()、new Number()、new String() 都有。数组、Object、Function 返回本身，Date 返回毫秒数，Math 和 Error 对象没有该方法
+ */
+var arr = [[1, 2, 3], false, 'abc']
+arr.valueOf() //  [[1,2,3], false, 'abc' ]
+
+var date = new Date(2013, 7, 18, 23, 11, 59, 230);
+date.valueOf() // 1376838719230
+
+var newBoolean = new Boolean(false)
+newBoolean.valueOf()  // false
+var bool = false;
+bool.valueOf()  // false
+bool == newBoolean  // true，这里是把 Boolean(newBoolean) 转换
+bool === newBoolean // false
+
+
+
+/**
+ * @method Object.preventExtensions(obj)  让对象变为不可拓展（不能添加新属性，当前已有的属性可以修改值，能删除已有属性）
+ * @method Object.isExtensible(obj) 判断对象是否可扩展
+ * @method Object.seal(obj)  密封对象，不能添加新属性，当前已有的属性可以修改值，但不能删除。也不能相互转换数据属性与存取值属性
+ * @method Object.isSealed(obj) 判断对象是否被密封
+ * @method Object.freeze() 冻结一个对象。已冻结对象的属性不能修改，删除，新增，并不能修改属性的可枚举性、可配置性、可写性
+ * @method Object.isFrozen(obj)  判断一个对象是否冻结
+ */
+var obj = { a: 1 }
+Object.seal(obj)
+obj.a = 2;
+obj.b = 1
+obj  // {a: 2}
+delete obj.a   // fasle，不能删除已有属性
+Object.defineProperty(obj, 'a', {
+  set: function () { return 3 }
+}) // 报错 TypeError，不能从数据属性改变为存取值属性
+Object.isSealed(obj) // true
+
+var obj2 = { a: 1 }
+Object.preventExtensions(obj2)
+Object.isExtensible(obj2) // false
+Object.isSealed(obj2)  // false，不可扩展对象，不一定是密封对象
+Object.defineProperty(obj2, 'a', { configurable: false })
+Object.isSealed(obj2)  // true，如果把对象属性改为不可配置，则这个对象也变成密封的
+
+var obj3 = { a: 1 }
+Object.seal(obj3)  // true
+Object.isExtensible(obj3)  // false。一个密封对象，也是不可扩展的
+Object.isFrozen(obj3) // false, 密封对象不一定是冻结对象
+
+var obj4 = {}
+Object.preventExtensions(obj4)
+Object.isSealed(obj4)  // true，阻止一个空对象扩展，是密封的
+Object.isFrozen(obj4)  // true，阻止一个空对象扩展，也是冻结的
+
+var obj5 = { a: 1 }
+Object.freeze(obj5)
+obj5.a = 2
+obj5 // {a: 1}
+delete obj5.a // false
+Object.isFrozen(obj5) // true
+Object.isSealed(obj5) // true，冻结对象也是密封对象
+Object.isExtensible(obj5) // false，冻结对象不可扩展
+Object.defineProperty(obj5, 'a', { value: 3, enumerable: false }) // Type Error
+
+var obj6 = {
+  internal: {}
+}
+Object.freeze(obj6)
+obj6.internal.a = 1
+obj6 // {internal: {a: 1}}，说明冻结对象只能是浅冻结
+
+// 实现一个深冻结（递归冻结）
+function deep_freeze(obj) {
+  var propNames = Object.getOwnPropertyNames(obj);
+  propNames.forEach(function (propName) {
+    if (typeof propName === 'object' || typeof propName !== null) {
+      deep_freeze(obj[propName])
+    }
+  })
+  return Object.freeze(obj)
+}
+
+
+
+/**
+ * @method prototypeObj.isPrototypeOf(object) 判断 prototypeObj 是 object 的原型对象
+ * @method Object.getPrototypeOf() 返回指定对象的原型
+ * @method Object.setPrototypeOf() 一般不用，用 Object.create() 代替
+ */
+function Foo() { }
+function Bar() { }
+function Baz() { }
+Bar.prototype = Object.create(Foo.prototype)
+Baz.prototype = Object.create(Bar.prototype)
+var baz = new Baz()
+Baz.prototype.isPrototypeOf(baz) // true
+Bar.prototype.isPrototypeOf(baz) // true
+Foo.prototype.isPrototypeOf(baz) // true
+Foo.prototype.a = 1
+baz.a  // 1
+
+var proto = { a: 1 }
+var obj = Object.create(proto)
+obj.b = 1
+Object.getPrototypeOf(obj) === proto // true
+var obj2 = Object.create(obj, { c: { value: 2 } })
+Object.getPrototypeOf(obj2) === obj2 // true
+
+
+
+/**
+ * @method obj.hasOwnProperty(prop) 判断对象是否存在某个自身属性
+ * @method obj.propertyIsEnumerable(prop) 判断某个属性是否是可枚举的
+ * @method Object.getOwnPropertyDescriptor(obj, prop) 查看一个对象自身某个属性的描述符
+ * @method Object.getOwnPropertyDescriptors(obj) 查看对象自身所有属性的描述符
+ * @method Object.getOwnPropertyNames()  返回自身属性所有的 keys 集合
+ * @method Object.getOwnPropertySymbols() 返回自身属性所有 Symbol 属性数组
+ */
+var obj = {}
+obj.prop = 'exit'
+obj.hasOwnProperty('prop') // true
+obj.hasOwnProperty('toString') // false，原型对象上的属性忽略
+
+obj.propertyIsEnumerable('prop') // true
+obj.propertyIsEnumerable('toString') // false
+
+Object.getOwnPropertyDescriptor(obj, 'prop') // {value: "exit", writable: true, enumerable: true, configurable: true}
+obj.name = 'hank'
+Object.getOwnPropertyDescriptors(obj) // {name: {value: "hank", writable: true, enumerable: true, configurable: true}, prop: {value: "exit", writable: true, enumerable: true, configurable: true}}
+
+Object.getOwnPropertyNames(obj) // ['prop', 'name']
+
+obj.a = Symbol('a')
+obj.b = Symbol('b')
+var objectSymbols = Object.getOwnPropertySymbols(obj) // [Symbol(a), Symbol(b)]
+obj // {a: Symbol(a), b: Symbol(b), name: "hank", prop: "exit"}
+
+
+
+/**
+ * @method function.toString() 返回当前函数源代码的字符串
+ * @method Object.entries() 返回自身属性可枚举值键值对数组
+ * @method Object.fromEntries() 把键值对列表转换成一个对象
+ */
+var object1 = {
+  a: 'somestring',
+  b: 42
+};
+var arr = Object.entries(object1) // [['a', 'somestring'], ['a', 42']]
+
+Object.fromEntries(arr) // {a: 'somestring', b: 42};
+
+function sum() {
+  return a + b
+}
+sum.toString() // "function sum() { return a + b }"

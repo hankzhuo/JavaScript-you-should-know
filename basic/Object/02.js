@@ -1,0 +1,78 @@
+/**
+ * @description 以下对 Object.defineProperty() 和 Object.defineProperties() 规则，会抛出类型错误
+ * 1. 如果对象是不可扩展的，则可以编辑已有的自身属性，但不能添加新属性
+ * 2. 如果属性时不可配置的，则不能修改它的可配置性和可枚举性
+ * 3. 如果存取器属性时是不可配置的，则不能修改 getter、setter 方法，也不能将它转为数据属性
+ * 4. 数据属性时不可配置的，不能将它转换为存取值属性
+ * 5. 如果数值属性是不可配置的，则不能将它的可写性从 false 转换为 true，但可以从 true 转换为 false
+ * 6. 如果数值属性时不可配置且不可写，则不能修改它的值。然而可配置不可写的属性时可以修改的。（实际上是标记可写，然后修改它的值，最后转换为不可写）
+ */
+// 1.默认对象是可扩展的
+var obj1 = {};
+Object.isExtensible(obj1); // true
+// 可以设置为不可扩展
+Object.preventExtensions(obj1);
+Object.isExtensible(obj1); // false
+obj1.x = 1
+obj1; // {}，不报错，但是不能扩展
+Object.defineProperty(obj1, 'x', {value: 1, writable: true, enumerable: true, configurable: true}) // 报错，已不能扩展x新属性
+
+// 2.属性 x 不可配置
+var obj2 = Object.defineProperty({}, 'x', {
+  value: 1,
+  writable: true, 
+  enumerable: true, 
+  configurable: false
+})
+Object.defineProperty(obj2, 'x', {configurable: true}) // 报错，不能修改它的可配置性和可枚举性
+
+// 3.存取器属性不可配置
+var obj3 = Object.defineProperty({}, 'x', {
+  get: function() {return 1},
+  enumerable: true,
+  configurable: false
+})
+Object.defineProperty(obj3, 'x', {
+  get: function() {return 2},
+}) // 报错，不能修改 setter、getter 方法
+Object.defineProperty(obj3, 'x', {
+  value: 2
+}) // 报错，不能改为数据属性
+
+
+// 4. 数据属性时不可配置的，不能将它转换为存取值属性
+var obj4 = Object.defineProperty({}, 'x', {
+  value: 1,
+  writable: true, 
+  enumerable: true, 
+  configurable: false
+})
+Object.defineProperty(obj4, 'x', {
+  get: function() {return 2},
+}) // 报错，不能转换为存取器属性
+
+
+// 5.数据属性不可配置，不可写
+var obj5 = Object.defineProperty({}, 'x', {
+  value: 1,
+  writable: false, 
+  enumerable: true, 
+  configurable: false
+})
+Object.defineProperty(obj5, 'x', {
+  value: 2,
+}) // 报错，不能修改值
+
+
+// 6.数据属性可配置，不可写
+var obj6 = Object.defineProperty({}, 'x', {
+  value: 1,
+  writable: false, 
+  enumerable: true, 
+  configurable:  true
+})
+Object.defineProperty(obj6, 'x', {
+  value: 2,
+})
+obj6 // {x: 2}
+Object.getOwnPropertyDescriptor(obj6) // {value: 3, writable: false, enumerable: true, configurable: true}

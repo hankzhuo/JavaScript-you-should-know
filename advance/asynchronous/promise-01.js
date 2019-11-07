@@ -1,0 +1,157 @@
+/**
+ * @description Promise
+ * 1. let promise = new Promise(executor)，执行器 executor 会立即执行，executor(resolve, reject) 接受两个参数，返回一个 promise 对象
+ * 2. Promise 有三种状态 pending、fulfilled、rejected。状态只能是从 pending => fullfilled / rejected，只能改变一次，不能逆向 。当 executor 中执行了 resolve(val) 时，状态 pending => fulfilled，当 executor 中执行了 reject(resson) 时，状态 pending => rejected
+ * 3. promise 状态为 fullfilled 时，会调用 then(onSuccess, onFailed) 中 onSuccess 方法；当状态为 rejected 时，会调用 then(onSuccess, onFailed) 中 onFailed 方法和 catch() 方法。
+ * 4. 如果一个对象实现了 then() 方法，那这个对象就是 thenable 对象。所有的 Promise 对象都是 thenable 对象，但并非所有 thenable 对象是 Promise。
+ * 5. Promise.resolve()、Promise.reject() 接受一个参数，返回完成态的 promise。如果向这两个方法中传入一个 Promise，则会直接返回这个 Promise。
+ * 6. 执行器内部发生错误，则 Promise 的拒绝处理程序会处理，如果没有拒绝程序处理，则会忽略这个错误，相当于在执行器内部使用了 try...catch...
+ * 7. 每次调用 then() 或 catch() 方法，实际是创建了并返回另一个 promise，因此可以链式调用。
+ * 8. Promise.all([p1, p2, p3])、Promise.race([p1, p2, p3]) 数组内的 promise 都会完成
+*/
+
+let promise = new Promise((resolve, reject) => {
+  console.log('Promise') // 立即执行
+  resolve(1) // 遇到 resolve 或 reject 时，把 resolve 或 reject 函数添加到微任务队列中，并添加 promise.then() 异步回调。
+  console.log(2)
+})
+promise.then((value) => {
+  console.log(value)
+})
+console.log('Hi')
+// 打印顺序：Promise 2 Hi 1
+
+
+// Promise.resolve()、Promise.reject()
+let promise2 = Promise.resolve(42)
+promise2.then(function(value) {
+  console.log(value) // 42
+})
+
+let promise3 = Promise.reject(44)
+promise3.catch(function(value) {
+  console.log(value) // 44
+})
+
+
+// thenable 对象
+let thenable = {
+  then: function(resolve, reject) {
+    resolve(43)
+  }
+}
+let p1 = Promise.resolve(thenable) // 调用 Promise.resolve() 方法，将 thenable 对象转换成一个已完成的 Promise
+p1.then(function(value) {
+  console.log(value) // 43
+})
+
+let thenable2 = {
+  then: function(resolve, reject) {
+    reject(44)
+  }
+}
+let p2 = Promise.resolve(thenable2)
+p2.catch(function(value) {
+  console.log(value) // 44
+})
+
+
+// 执行器内部发生错误，则 Promise 的拒绝处理程序会处理，如果没有拒绝程序处理，则会忽略这个错误，相当于在执行器内部使用了 try...catch...
+let promise4 = new Promise(function(resolve, reject) {
+  throw new Error('error')
+  // 等价于
+  // try {
+  //   throw new Error('error')
+  // } catch(ex) {
+  //   reject(ex)
+  // }
+})
+promise4.catch(err => {
+  console.log(err)
+})
+
+
+// 全局的 Promise 拒绝程序
+// 在浏览器中是 window 对象上触发，node 中是在 process 对象上触发
+// unhandledrejection：在一个事件循环中，当 Promise 被拒绝，并没有处理提供拒绝处理程序时调用
+// rejectionhandled：在一个事件循环后，当 Promise 被拒绝，并没有处理提供拒绝处理程序时调用
+
+// event 对象有三个参数：
+// type：事件名称
+// promise：被拒绝的 Promise 对象
+// reason：来自 Promise 的拒绝值
+
+window.onunhandledrejection = function(event) {
+  console.log(event.type) // 'onunhandledrejection'
+  console.log(event.reason.message)
+  console.log(event.promise)
+}
+window.onrejectionhandled = function(event) {
+  console.log(event.type)
+  console.log(event.reason.message)
+  console.log(event.promise)
+}
+
+// node 环境
+process.on('onunhandledrejection', function(reason, promise) {
+  console.log(reason.type)
+  console.log(reason.message)
+  console.log(promise)
+})
+process.on('onrejectionhandled', function(reason, promise) {
+  console.log(reason.type)
+  console.log(reason.message)
+  console.log(promise)
+})
+
+
+// promise 链式调用
+let promise = new Promise((resolve, reject) => {
+  resolve(2)
+})
+promise.then((value) => {
+  console.log(value) // 2
+  return value + 1
+}).then((value) => {
+  console.log(value) // 3
+  throw new Error('error')
+}).catch(err => {
+  // 任何一个 then() 内发生错误，这里都会执行
+  console.log('catch error...', err) // error
+})
+
+
+let promise1 = new Promise((resolve, reject) => {
+  resolve(1)
+})
+let promise2 = new Promise((resolve, reject) => {
+  reject(2)
+})
+promise1.then(value => {
+  console.log(value) // 1
+  return promise2
+}).catch(err => {
+  console.log(err) // 2
+})
+
+
+// Promise.all() 接受一个参数（可迭代对象），返回一个 Promise
+let p1 = new Promise(function(resolve, reject) {
+  resolve(1)
+})
+
+let p2 = new Promise(function(resolve, reject) {
+  setTimeout(() => resolve(2), 1000)
+})
+
+let p3 = new Promise(function(resolve, reject) {
+  resolve(3)
+})
+
+let p4 = Promise.all([p1, p2, p3])
+
+p4.then(function(value) {
+  console.log(value) // [1, 2, 3]
+}).catch(err => {
+  console.log(err)
+})
