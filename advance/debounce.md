@@ -1,16 +1,15 @@
-/**
- * @desc 防抖：事件持续触发，但只有等事件停止触发 n 秒后才执行函数
- * @注意点：
- *  1. this 指向
- *  2. event 对象
- *  3. 结合 setTimeout 来限制执行次数
- *  4. immediate 说明是第一次会执行函数，等待 wait 时间后才可以执行下一。默认不传是第一次不执行，等待 wait 时间后才执行函数。
- */
+## 防抖
 
+事件持续触发，但只有等事件停止触发 n 秒后才执行函数
+
+- this 指向
+- event 对象
+- 结合 setTimeout 来限制执行次数
+- immediate 说明是第一次会执行函数，等待 wait 时间后才可以执行下一。默认不传是第一次不执行，等待 wait 时间后才执行函数。
+
+```js
 function debounce(func, wait, immediate) {
-
   var timeout, result;
-
   var debounced = function () {
     var context = this;
     var args = arguments; // 这里的 arguments 是 getUserAction 函数接受的参数
@@ -41,3 +40,4 @@ function debounce(func, wait, immediate) {
 
   return debounced;
 }
+```

@@ -1,10 +1,9 @@
-/**
- * @desc 模拟实现一个 new 
- * 步骤：
- *  1. 改变实例的原型对象指向
- *  2. 执行构造函数，改变 this 指向
- */
+## 模拟实现一个 new 
+步骤：
+- 改变实例的原型对象指向
+- 执行构造函数，改变 this 指向
 
+```js
 function objectFactory () {
   // 从 Object.prototype上克隆一个对象
   var obj = new Object();
@@ -30,3 +29,4 @@ Otaku.prototype.sayYourName = function () {
 
 var person = new Otaku('Kevin', '18')
 var person1 = objectFactory(Otaku, 'Kevin', '18')
+```

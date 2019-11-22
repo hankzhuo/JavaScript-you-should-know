@@ -1,10 +1,8 @@
-/**
- * @description extend 复制其他对象内容到目标对象中
- * @方法：
- *    1. 第一个参数判断为是否深拷贝
- *    2. 
- */
+## extend 复制其他对象内容到目标对象中
+方法：
+- 第一个参数判断为是否深拷贝
 
+```js
 var class2type = {};
 var toString = class2type.toString;
 var hasOwn = class2type.hasOwnProperty;
@@ -94,3 +92,4 @@ var b = extend(true, obj1, obj2)
 var c = extend(true, obj2, obj1)
 console.log(b)
 console.log(c)
+```

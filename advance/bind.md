@@ -1,11 +1,9 @@
-/**
- * @desc 模拟实现一个 bind 方法（ES5加入）
- * 特点：
- *  1. 返回一个函数
- *  2. 可以传入多个参数
- *  3. 一个绑定函数也能使用new操作符创建对象：这种行为就像把原函数当成构造器。提供的 this 值被忽略
- */
+## 模拟实现一个 bind 方法（ES5加入）
+- 返回一个函数
+- 可以传入多个参数
+- 一个绑定函数也能使用new操作符创建对象：这种行为就像把原函数当成构造器。提供的 this 值被忽略
 
+```js
 Function.prototype.bind = function (context) {
   // 调用 bind 的不是函数时候
   if (typeof this !== "function") {
@@ -46,3 +44,4 @@ var module = {
 var unboundGetX = module.getX;
 var boundGetX = unboundGetX.bind(module);
 console.log(boundGetX());
+```

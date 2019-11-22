@@ -1,12 +1,12 @@
-/**
-* @desc 数组扁平化，核心思想就是递归
-* @params {array} 数组，{shallow} boolean 是否只扁平一层
-* @步骤：
-*   1. 遍历数组
-*   2. 对数组每一项遍历是否为数组，如果是数组，则递归
-*   3. 返回这个值
-*/
+## 数组扁平化
 
+核心思想就是递归
+步骤：
+- 遍历数组
+- 对数组每一项遍历是否为数组，如果是数组，则递归
+- 返回这个值
+
+```js
 function _flatten(input, shallow, output) {
   output = output || [];
   var idx = output.length;
@@ -40,3 +40,4 @@ console.log('faltten:', arr1);
 var arr2 = flatten([1, [2], [3, [[4]]]], true);
 console.log('faltten:shadow', arr2);
 // faltten:shadow [ 1, 2, 3, [ [ 4 ] ] ]
+```

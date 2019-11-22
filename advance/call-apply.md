@@ -1,14 +1,13 @@
-/**
- * @desc 模拟实现一个 call 方法
- * 步骤：
- *  1. 把函数设为该对象的属性
- *  2. 执行该函数
- *  3. 删除该函数
- * 注意点：
- *  1. 多个参数问题，用 arguments 解决
- *  2. this 参数可以传 null，当为 null 的时候，视为指向 window
- */
+## 模拟实现一个 call 方法
+- 步骤：
+  - 把函数设为该对象的属性
+  - 执行该函数
+  - 删除该函数
+- 注意点：
+  - 多个参数问题，用 arguments 解决
+  - this 参数可以传 null，当为 null 的时候，视为指向 window
 
+```js
 Function.prototype.call2 = function(context) {
   // 有可能传递 null 的时候，传递 null，传递 null 时候，this 指向 window
   var context = context || window;
@@ -51,12 +50,11 @@ function bar(name, age) {
 
 bar.call2(obj, 'kevin', '18');
 // bar.call2(null, 'kevin', '18');
+```
 
+## 模拟实现一个 apply 方法
 
-/**
- *@desc 模拟实现一个 apply 方法
- */
-
+```js
 Function.prototype.apply = function (context, arr) {
   var context = Object(context) || window;
   context.fn = this;
@@ -75,3 +73,4 @@ Function.prototype.apply = function (context, arr) {
   delete context.fn
   return result;
 }
+```
