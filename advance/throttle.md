@@ -1,13 +1,29 @@
 ## 节流
 
-如果持续触发时间，每隔一段时间，只执行一次事件。
+规定在一个单位时间内，只能触发一次函数。如果这个单位时间内触发多次函数，只有一次生效。
 
-注意点：
-- 两种实现方式：使用时间戳和设置定时器
-- 时间戳：超过设置时间，触发执行。特点：第一次会立马执行，最后面不会执行
-- 设置定时器：如果定时器存在就不执行，直到定时器执行完后，清空定时器后，在设置下个定时器。
-- leading：false 表示禁用第一次执行。trailing: false 表示禁用停止触发的回调。两个一般不会同时设置
+适用场景：
+- 拖拽场景：固定时间内只执行一次，防止超高频次触发位置变动
+- 缩放场景：监控浏览器resize
+- 动画场景：避免短时间内多次触发动画引起性能问题
 
+简单版：
+```js
+const throttle = function(fn, delay=500) {
+  let flag = true;
+  return (...args) => {
+    if (!flag) return;
+    flag = false;
+    setTimeout(() => {
+      fn.apply(this, args);
+      flag = true;
+    }, delay);
+  }
+}
+
+```
+
+underscore 版：
 ```js
 function throttle(func, wait, options) {
   var timeout, result, args, context;

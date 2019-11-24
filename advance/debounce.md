@@ -1,12 +1,25 @@
 ## 防抖
 
-事件持续触发，但只有等事件停止触发 n 秒后才执行函数
+在事件被触发n秒后再执行回调，如果在这n秒内又被触发，则重新计时。
 
-- this 指向
-- event 对象
-- 结合 setTimeout 来限制执行次数
-- immediate 说明是第一次会执行函数，等待 wait 时间后才可以执行下一。默认不传是第一次不执行，等待 wait 时间后才执行函数。
+适用场景：
+- 按钮提交场景：防止多次提交按钮，只执行最后一次提交
+- 服务端验证场景：表单验证需要服务端配合，只执行一段连续的输入事件的最后一次，还有搜索联想词功能类似
 
+简单版：
+```js
+const debounce = function(fn, delay) {
+  let timer = null;
+  return (...args) => {
+    clearTimout(timer);
+    timer = setTimeout(() => {
+      fn.apply(this, args)
+    }, delay)
+  }
+}
+```
+
+underscore 版：
 ```js
 function debounce(func, wait, immediate) {
   var timeout, result;

@@ -17,6 +17,7 @@ map.set(key2, 10);
 map.get(key1); // 5
 map.get(key2); // 10
 ```
+
 ```js
 // 可以接受数组初始化一个 Map 集合
 let map = new Map([['name', 'hank'], ['age', 30]])
