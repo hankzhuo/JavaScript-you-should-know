@@ -1,86 +1,73 @@
 ## Set 集合
-1. 对象所有的属性名都是字符串类型，比如 5 和 '5'，会强制转换成字符串
-2. Set 类型是一种**有序列表**，其中包含相互独立的非重复值，不会发生强制转换
-   1. Set 构造函数可以接受所有可迭代对象作为参数，如数组、Set 集合、Map 集合
-   2. 不能像数组一样，直接访问 Set 集合中某个元素，如果要，则需要先转换成数组
-   3. WeekSet 集合只储存对象的弱引用，并不可以存储原始值。只有三种方法：add()、has()、delete()
 
+### 语法
+
+> new Set([iterable])
+
+如果传递一个可迭代对象，它的所有元素将不重复地被添加到新的 Set 中。如果不指定此参数或其值为 `null`，则新的 Set为空。
+
+### 特点
+
+1. Set 对象是值的集合，你可以按照插入的顺序迭代它的元素。 Set中的元素只会出现一次，即 Set 中的元素是唯一的。
+2. `NaN` 和 `undefined` 都可以被存储在 Set 中， NaN之间被视为相同的值。其他都是按照 === 来判断是否相同
+3. 所有 Set 实例继承自 `Set.prototype`
+
+
+例子 1
 ```js
-let set = new Set();
-set.add(5);
-set.add('5');
+let mySet = new Set();
+mySet.add(1);
+mySet.add(5);
+mySet.add(5); // 忽略重复元素
+mySet.add('5'); // Set [1, 5, "5"]
 
-let key1 = {}
-set.add(key1); // key1 不会被强制转换成 "[object Object]"
-set.add(5) // 重复，本次调用直接被忽略 
-```
+let o = {a: 1, b: 2};
+mySet.add(o);
+mySet.add({a: 1, b: 2}); // 与 o 对象不是指向同一个对象
 
-```js
-// 可以过滤重复的值
-let set2 = new Set([1, 2, 3, 4, 5, 5, 5])
-set2.size; // 5
-set2.has(2); // true，检测是否存在某个值
+mySet.has(1); // true
+mySet.has(o); // true
 
-set2.delete(2); // true，移除 Set 集合中某一个元素
-set2.has(2); // false
-set2.clear(); // 移除所有元素
-set2.size; // 0 
+mySet.size; // 5
 
-// forEach 回调前两个参数完全相同，第三个参数等于 set 本身
-set.forEach(function(value, key, ownerSet) {
-  console.log(value, key, value === key);
-  console.log(ownerSet === set);
-})
-```
+mySet.delete(5);
+mySet.has(5); // false
 
-```js
-// Set 集合中的 this
-// forEach 方法中，第二个参数也可以和数组一样，可以用来传递 this
-let processor = {
-  output(value) {
-    console.log(value)
-  },
-  process(dataSet) {
-    dataSet.forEach(function(value) {
-      this.output(value);
-    }, this)
-  }
+// for...of 循环
+for (let item of mySet) {
+  console.log(item)
 }
-processor.process(set)
-```
 
-也可以直接使用箭头函数
-```js
-let processor = {
-  output(value) {
-    console.log(value)
-  },
-  process(dataSet) {
-    dataSet.forEach((value) => this.output(value))
-  }
+for (let key of mySet.keys()) {
+  console.log(key)
 }
-processor.process(set)
+
+for (let value of mySet.values()) {
+  console.log(value)
+}
+
+// key 和 value 值一样
+for (let [key, value] of mySet.entries()) {
+  console.log(key, value)
+}
+
+// 用forEach迭代
+mySet.forEach(function(value) {
+  console.log(value);
+});
+
+// 使用 `Array.from` 转换 Set为 Array
+let myArr = Array.from(mySet); // [1, "5", {...}, {...}]
+
+// 使用预算符转换为 Array
+[...mySet] // [1, "5", {...}, {...}]
+
 ```
 
-
-将 Set 集合转换为数组，自动去重
+例子 2
 ```js
-let set3 = new Set([1, 2, 3, 4, 5, 5, 5]);
-let array = [...set3]; // [1, 2, 3, 4, 5]
+let text = 'India';
+let mySet = new Set(text);
 
-let set = new Set(), key = {};
-set.add(key);
-set.has(key); 
-key = null;
-set.has(key); // false
-[...set][0]; // 还保持着对对象的引用
-```
-
-**WeakSet**
-```js
-let set = new WeakSet(), key = {};
-set.add(key);
-set.has(key); // true
-key = null; // 移除对象 key 的最后一个强引用（WeakSet 中的引用也会自动移除）
-set.has(key); // false
+mySet; // {"I", "n", "d", "i", "a"}
 ```
